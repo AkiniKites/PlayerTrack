@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Title>PlayerTrack.Plugin</Title>
 		<Authors>kalilistic</Authors>
@@ -13,7 +13,7 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 		<AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-		<OutputPath>bin\$(Configuration)\</OutputPath>
+		<OutputPath>$(appdata)\XIVLauncher\devPlugins\PlayerTrack</OutputPath>
 		<DalamudLibPath>$(appdata)\XIVLauncher\addon\Hooks\dev\</DalamudLibPath>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
