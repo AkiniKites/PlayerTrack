@@ -62,6 +62,11 @@ public static class FormatHelper
                    : $"{timeSpan} {ServiceContext.Localization.GetString("FromNow")}";
     }
 
+    public static DateTime ToDateTime(this long unixTimeMilliseconds)
+    {
+        return DateTimeOffset.FromUnixTimeMilliseconds(unixTimeMilliseconds).LocalDateTime;
+    }
+
     private static string ConvertToShortTimeSpan(long value)
     {
         var timeSpan = TimeSpan.FromMilliseconds(value);

@@ -12,9 +12,10 @@ using Dalamud.Interface.Utility;
 public class PlayerEncounterComponent : ViewComponent
 {
     private const float SameLineOffset1 = 70f;
-    private const float SameLineOffset2 = 160f;
-    private const float SameLineOffset3 = 200f;
-    private const float SameLineOffset4 = 230f;
+    private const float SameLineOffset2 = 140f;
+    private const float SameLineOffset3 = 230f;
+    private const float SameLineOffset4 = 270f;
+    private const float SameLineOffset5 = 300f;
     private readonly IMainPresenter presenter;
 
     public PlayerEncounterComponent(IMainPresenter presenter) => this.presenter = presenter;
@@ -36,23 +37,27 @@ public class PlayerEncounterComponent : ViewComponent
         {
             LocGui.TextColored("Time", ImGuiColors.DalamudViolet);
             ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset1);
-            LocGui.TextColored("Duration", ImGuiColors.DalamudViolet);
+            LocGui.TextColored("Hour", ImGuiColors.DalamudViolet);
             ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset2);
-            LocGui.TextColored("Job", ImGuiColors.DalamudViolet);
+            LocGui.TextColored("Duration", ImGuiColors.DalamudViolet);
             ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset3);
-            LocGui.TextColored("Level", ImGuiColors.DalamudViolet);
+            LocGui.TextColored("Job", ImGuiColors.DalamudViolet);
             ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset4);
+            LocGui.TextColored("Level", ImGuiColors.DalamudViolet);
+            ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset5);
             LocGui.TextColored("Location", ImGuiColors.DalamudViolet);
             foreach (var enc in player.Encounters)
             {
                 LocGui.Text(enc.Time);
                 ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset1);
-                LocGui.Text(enc.Duration);
+                LocGui.Text(enc.TimeOfDay);
                 ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset2);
-                LocGui.Text(enc.Job);
+                LocGui.Text(enc.Duration);
                 ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset3);
-                LocGui.Text(enc.Level);
+                LocGui.Text(enc.Job);
                 ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset4);
+                LocGui.Text(enc.Level);
+                ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset5);
                 LocGui.Text(enc.Location);
             }
         }

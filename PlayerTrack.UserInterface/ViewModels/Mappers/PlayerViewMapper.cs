@@ -171,6 +171,7 @@ public static class PlayerViewMapper
                 {
                     Id = pEnc.Id,
                     Time = pEnc.Created.ToTimeSpan(),
+                    TimeOfDay = pEnc.Created.ToDateTime().ToString("h tt").ToLower(),
                     Duration = pEnc.Ended == 0 ? (pEnc.Updated - pEnc.Created).ToDuration() : (pEnc.Ended - pEnc.Created).ToDuration(),
                     Job = DalamudContext.DataManager.ClassJobs[pEnc.JobId].Code,
                     Level = pEnc.JobLvl.ToString(),

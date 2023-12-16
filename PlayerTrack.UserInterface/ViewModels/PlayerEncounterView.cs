@@ -6,6 +6,8 @@ public class PlayerEncounterView
 
     public string Time { get; init; } = null!;
 
+    public string TimeOfDay { get; init; } = null!;
+
     public string Duration { get; init; } = null!;
 
     public string Job { get; init; } = null!;
