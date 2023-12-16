@@ -18,35 +18,23 @@ public class PlayerComparer : IComparer<Player>
     {
         try
         {
-            if (ReferenceEquals(x, y))
-            {
-                return 0;
-            }
+            if (ReferenceEquals(x, y)) return 0;
+            if (ReferenceEquals(null, y)) return 1;
+            if (ReferenceEquals(null, x)) return -1;
 
-            if (ReferenceEquals(null, y))
-            {
-                return 1;
-            }
+            var xRank = this.CategoryRanks.TryGetValue(x.PrimaryCategoryId, out var rank) ? rank : DefaultRank;
+            var yRank = this.CategoryRanks.TryGetValue(y.PrimaryCategoryId, out var categoryRank)
+                ? categoryRank
+                : DefaultRank;
 
-            if (ReferenceEquals(null, x))
-            {
-                return -1;
-            }
-
-            var categoryComparison = this.CategoryRanks[x.PrimaryCategoryId].CompareTo(this.CategoryRanks[y.PrimaryCategoryId]);
+            var categoryComparison = xRank.CompareTo(yRank);
             if (categoryComparison != 0)
             {
                 return categoryComparison;
             }
 
             var nameComparison = string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase);
-            if (nameComparison != 0)
-            {
-                return nameComparison;
-            }
-
-            var worldIdComparison = x.WorldId.CompareTo(y.WorldId);
-            return worldIdComparison;
+            return nameComparison != 0 ? nameComparison : x.WorldId.CompareTo(y.WorldId);
         }
         catch (Exception)
         {
