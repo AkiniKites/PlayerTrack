@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Dalamud.DrunkenToad.Core;
 using PlayerTrack.Infrastructure;
@@ -13,6 +14,20 @@ public class PlayerChangeService
         DalamudContext.PluginLog.Verbose($"Entering PlayerChangeService.UpdatePlayerId(): {oldestPlayerId}, {newPlayerId}");
         RepositoryContext.PlayerNameWorldHistoryRepository.UpdatePlayerId(oldestPlayerId, newPlayerId);
         RepositoryContext.PlayerCustomizeHistoryRepository.UpdatePlayerId(oldestPlayerId, newPlayerId);
+    }
+    
+    public static void HandleNameWorldChange(Player player, string playerName, uint worldId)
+    {
+        DalamudContext.PluginLog.Verbose($"Entering PlayerChangeService.HandleNameWorldChange(): {player.Name}@{player.WorldId}, {playerName}@{worldId}");
+        if (!player.Name.Equals(playerName, StringComparison.OrdinalIgnoreCase) || player.WorldId != worldId)
+        {
+            RepositoryContext.PlayerNameWorldHistoryRepository.CreatePlayerNameWorldHistory(new PlayerNameWorldHistory
+            {
+                PlayerId = player.Id,
+                PlayerName = player.Name,
+                WorldId = player.WorldId,
+            });
+        }
     }
 
     public static void HandleNameWorldChange(Player oldestPlayer, Player newPlayer)
@@ -89,5 +104,16 @@ public class PlayerChangeService
             .ToList();
 
         return worldNames.Any() ? string.Join(", ", worldNames) : string.Empty;
+    }
+
+    public static List<PlayerNameWorldHistory> GetPlayerNameWorldHistories(IEnumerable<int> playerIds)
+    {
+        DalamudContext.PluginLog.Verbose($"Entering PlayerChangeService.GetPlayerNameWorldHistories()");
+        var nameWorldHistories = RepositoryContext.PlayerNameWorldHistoryRepository.GetPlayerNameWorldHistories(playerIds.ToArray());
+        if (nameWorldHistories == null)
+        {
+            return new List<PlayerNameWorldHistory> { };
+        }
+        return nameWorldHistories.ToList();
     }
 }

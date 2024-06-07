@@ -79,6 +79,49 @@ public class PlayerNameWorldHistoryRepository : BaseRepository
             return null;
         }
     }
+    
+    public IEnumerable<PlayerNameWorldHistory> GetPlayerNameWorldHistories(int playerId)
+    {
+        DalamudContext.PluginLog.Verbose($"Entering PlayerNameWorldHistoryRepository.GetPlayerNameWorldHistories(): {playerId}");
+        try
+        {
+            const string sql = "SELECT * FROM player_name_world_histories WHERE player_id = @player_id ORDER BY updated DESC";
+            return this.Connection.Query<PlayerNameWorldHistoryDTO>(sql, new { player_id = playerId }).Select(x => Mapper.Map<PlayerNameWorldHistory>(x));
+        }
+        catch (Exception ex)
+        {
+            DalamudContext.PluginLog.Error(ex, $"Failed to get player name world history for PlayerID {playerId}");
+            return new List<PlayerNameWorldHistory>();
+        }
+    }
+
+    public IEnumerable<PlayerNameWorldHistory>? GetPlayerNameWorldHistories(int[] playerIds) 
+    {
+        const int maxPerQuery = 750;
+        DalamudContext.PluginLog.Verbose($"Entering PlayerNameWorldHistoryRepository.GetPlayerNameWorldHistories()");
+        try 
+        {
+            List<PlayerNameWorldHistory> results = new();
+            string sqlBase = "SELECT * FROM player_name_world_histories ";
+            for (int pageStart = 0; pageStart < playerIds.Length; pageStart += maxPerQuery) 
+            {
+                string whereClause = $"WHERE player_id = {playerIds[pageStart]}";
+                for (int i = pageStart + 1; i < pageStart + maxPerQuery && i < playerIds.Length; i++) 
+                {
+                    whereClause += $" OR player_id = {playerIds[i]}";
+                }
+                string sql = sqlBase + whereClause;
+                var pageResults = this.Connection.Query<PlayerNameWorldHistoryDTO>(sql).Select(x => Mapper.Map<PlayerNameWorldHistory>(x));
+                results = results.Concat(pageResults).ToList();
+            }
+            return results;
+        }
+        catch (Exception ex) 
+        {
+            DalamudContext.PluginLog.Error(ex, $"Failed to get bulk player name world history.");
+            return null;
+        }
+    }
 
     public bool DeleteNameWorldHistory(int playerId)
     {
