@@ -11,6 +11,7 @@ using PlayerTrack.Models;
 using PlayerTrack.UserInterface.Components;
 using PlayerTrack.UserInterface.Main.Presenters;
 
+// ReSharper disable InconsistentNaming
 namespace PlayerTrack.UserInterface.Main.Components;
 
 using Dalamud.DrunkenToad.Helpers;
@@ -181,11 +182,6 @@ public class PlayerListComponent : ViewComponent
             {
                 this.presenter.TogglePanel(PanelType.AddPlayer);
             }
-            
-            if (LocGui.MenuItem("OpenLodestoneService"))
-            {
-                this.presenter.TogglePanel(PanelType.Lodestone);
-            }
 
             if (LocGui.MenuItem("OpenSettings"))
             {
@@ -256,26 +252,23 @@ public class PlayerListComponent : ViewComponent
             {
                 if (LocGui.MenuItem("TargetPlayer"))
                 {
-                    DalamudContext.TargetManager.SetTarget(player.ObjectId);
+                    DalamudContext.TargetManager.SetTarget(player.EntityId);
                 }
 
                 if (LocGui.MenuItem("FocusTargetPlayer"))
                 {
-                    DalamudContext.TargetManager.SetFocusTarget(player.ObjectId);
+                    DalamudContext.TargetManager.SetFocusTarget(player.EntityId);
                 }
 
                 if (LocGui.MenuItem("OpenPlayerPlate"))
                 {
-                    DalamudContext.TargetManager.OpenPlateWindow(player.ObjectId);
+                    DalamudContext.TargetManager.OpenPlateWindow(player.EntityId);
                 }
             }
 
-            if (player.LodestoneStatus == LodestoneStatus.Verified)
+            if (LocGui.MenuItem("OpenLodestone"))
             {
-                if (LocGui.MenuItem("OpenLodestone"))
-                {
-                    PlayerLodestoneService.OpenLodestoneProfile(player.LodestoneId);
-                }
+                ServiceContext.LodestoneService.OpenLodestoneProfile(player.Name, player.WorldId);
             }
 
             // sub menu for selecting category

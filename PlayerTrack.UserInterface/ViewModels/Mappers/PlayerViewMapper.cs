@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using Dalamud.DrunkenToad.Core;
-using Dalamud.Interface.Colors;
+using Dalamud.DrunkenToad.Helpers;
 using PlayerTrack.Domain;
 using PlayerTrack.Models;
 using PlayerTrack.Models.Structs;
@@ -28,9 +27,6 @@ public static class PlayerViewMapper
             HomeWorld = GetHomeWorld(player.WorldId),
             FreeCompany = GetFreeCompany(player.FreeCompany),
             LodestoneId = player.LodestoneId,
-            Lodestone = ServiceContext.Localization.GetString(player.LodestoneStatus.ToString()),
-            LodestoneColor = ColorHelper.GetColorByStatus(player.LodestoneStatus),
-            LodestoneStatus = player.LodestoneStatus,
             Appearance = GetAppearance(player.Customize),
             FirstSeen = player.SeenCount != 0 && player.Created != 0 ? player.Created.ToTimeSpan() : na,
             LastSeen = player.SeenCount != 0 && player.LastSeen != 0 ? player.LastSeen.ToTimeSpan() : na,
@@ -155,7 +151,7 @@ public static class PlayerViewMapper
                     Id = pEnc.Id,
                     Time = pEnc.Created.ToTimeSpan(),
                     TimeOfDay = pEnc.Created.ToDateTime().ToString("h tt").ToLower(),
-                    Duration = pEnc.Ended == 0 ? (pEnc.Updated - pEnc.Created).ToDuration() : (pEnc.Ended - pEnc.Created).ToDuration(),
+                    Duration = pEnc.Ended == 0 ? (UnixTimestampHelper.CurrentTime() - pEnc.Created).ToDuration() : (pEnc.Ended - pEnc.Created).ToDuration(),
                     Job = DalamudContext.DataManager.ClassJobs[pEnc.JobId].Code,
                     Level = pEnc.JobLvl.ToString(),
                     Location = GetLastLocation(enc.TerritoryTypeId)

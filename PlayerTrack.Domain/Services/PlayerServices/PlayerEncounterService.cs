@@ -12,21 +12,14 @@ public class PlayerEncounterService
 {
     public static List<PlayerEncounter>? GetPlayerEncountersByPlayer(int playerId)
     {
-        var pEncs = RepositoryContext.PlayerEncounterRepository.GetAllByPlayerId(playerId);
-        if (pEncs == null) return null;
-        foreach (var pEnc in pEncs)
-        {
-            if (pEnc.Ended == 0) pEnc.Ended = pEnc.Updated;
-        }
-
-        return pEncs;
+        return RepositoryContext.PlayerEncounterRepository.GetAllByPlayerId(playerId);
     }
 
     public static void DeletePlayerEncountersByPlayer(int playerId) => RepositoryContext.PlayerEncounterRepository.DeleteAllByPlayerId(playerId);
 
     public static int CreatePlayerEncounter(ToadPlayer toadPlayer, Player player)
     {
-        DalamudContext.PluginLog.Verbose($"Entering PlayerEncounterService.CreatePlayerEncounter(): {toadPlayer.Id}, {player.Id}");
+        DalamudContext.PluginLog.Verbose($"Entering PlayerEncounterService.CreatePlayerEncounter(): {toadPlayer.ContentId}, {player.Id}");
         if (player.Id == 0)
         {
             DalamudContext.PluginLog.Warning("Player Id is 0, cannot create player encounter.");
@@ -58,8 +51,6 @@ public class PlayerEncounterService
         var lastLocId = ServiceContext.EncounterService.CurrentEncounter?.TerritoryTypeId ?? 0;
         return DalamudContext.DataManager.Locations[lastLocId];
     }
-
-    public static void UpdatePlayerId(int oldestPlayerId, int newPlayerId) => RepositoryContext.PlayerEncounterRepository.UpdatePlayerId(oldestPlayerId, newPlayerId);
 
     public static void EndPlayerEncounters(int encounterId)
     {
@@ -102,7 +93,6 @@ public class PlayerEncounterService
         var pEnc = RepositoryContext.PlayerEncounterRepository.GetByPlayerIdAndEncId(player.Id, encounter.Id);
         if (pEnc == null)
         {
-            DalamudContext.PluginLog.Warning("Player encounter is null, cannot end player encounter.");
             return;
         }
 

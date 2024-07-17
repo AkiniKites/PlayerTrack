@@ -1,41 +1,31 @@
-﻿using System;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Dalamud.DrunkenToad.Core;
-using Dalamud.Game.ClientState.Objects.SubKinds;
-using Dalamud.Game.Text.SeStringHandling.Payloads;
-
-using Pilz.Dalamud;
-using Pilz.Dalamud.Nameplates.EventArgs;
-using Pilz.Dalamud.Nameplates.Tools;
-using Pilz.Dalamud.Tools.Strings;
 using PlayerTrack.Domain;
-using InternalNameplateManager = Pilz.Dalamud.Nameplates.NameplateManager;
+using PlayerTrack.Models;
+using PlayerTrack.Nameplates;
 
 namespace PlayerTrack.Plugin;
 
-using System.Collections.Concurrent;
-using System.Threading.Tasks;
-using Domain.Common;
-using Models;
-
 public static class NameplateHandler
 {
-    private static readonly ConcurrentDictionary<string, PlayerNameplate> Nameplates = new();
-    private static InternalNameplateManager? internalNameplateManager;
-
+    private static readonly ConcurrentDictionary<uint, PlayerNameplate> Nameplates = new();
+    private static NamePlateGui? namePlateGuiHandler;
+    
     public static void Start()
     {
         DalamudContext.PluginLog.Verbose("Entering NameplateHandler.Start()");
-        PluginServices.Initialize(DalamudContext.PluginInterface);
-        internalNameplateManager = new InternalNameplateManager();
-        internalNameplateManager.Hooks.AddonNamePlate_SetPlayerNameManaged += OnNameplateUpdate;
-        ServiceContext.PlayerProcessService.CurrentPlayerAdded += player => UpdateNameplate(player.Key, player);
-        ServiceContext.PlayerProcessService.CurrentPlayerRemoved += player => RemoveNameplate(player.Key);
-        ServiceContext.PlayerDataService.PlayerUpdated += player => UpdateNameplate(player.Key, player);
+        namePlateGuiHandler = new NamePlateGui();
+        namePlateGuiHandler.OnNamePlateUpdate += UpdateNameplates;
+        ServiceContext.PlayerProcessService.CurrentPlayerAdded += player => UpdateNameplate(player.EntityId, player);
+        ServiceContext.PlayerProcessService.CurrentPlayerRemoved += player => RemoveNameplate(player.EntityId);
+        ServiceContext.PlayerDataService.PlayerUpdated += player => UpdateNameplate(player.EntityId, player);
     }
-
-    public static void RefreshNameplates() => Task.Run(() =>
+    
+    public static void UpdateNameplate(uint entityId, Player player)
     {
-        DalamudContext.PluginLog.Verbose("Entering NameplateHandler.RefreshNameplates()");
+        DalamudContext.PluginLog.Verbose($"Entering NameplateHandler.UpdateNameplate(): {entityId}");
         var currentLocation = DalamudContext.PlayerLocationManager.GetCurrentLocation();
         if (currentLocation == null)
         {
@@ -43,109 +33,90 @@ public static class NameplateHandler
             return;
         }
 
-        foreach (var entry in Nameplates)
-        {
-            var player = ServiceContext.PlayerDataService.GetPlayer(entry.Key);
-            if (player == null)
-            {
-                DalamudContext.PluginLog.Verbose($"Failed to get player for {entry.Key}.");
-                continue;
-            }
-
-            var nameplate = PlayerNameplateService.GetPlayerNameplate(player, currentLocation);
-            Nameplates.AddOrUpdate(entry.Key, nameplate, (_, _) => nameplate);
-        }
-    });
-
-    public static void UpdateNameplate(string key, Player player)
-    {
-        DalamudContext.PluginLog.Verbose($"Entering NameplateHandler.UpdateNameplate(): {key}");
-        var currentLocation = DalamudContext.PlayerLocationManager.GetCurrentLocation();
-        if (currentLocation == null)
-        {
-            DalamudContext.PluginLog.Verbose("Failed to get current location.");
-            return;
-        }
-
-        var nameplate = PlayerNameplateService.GetPlayerNameplate(player, currentLocation);
-        Nameplates.AddOrUpdate(key, nameplate, (_, _) => nameplate);
+        var nameplate = PlayerNameplateService.GetPlayerNameplate(player, currentLocation.LocationType);
+        Nameplates.AddOrUpdate(entityId, nameplate, (_, _) => nameplate);
     }
-
-    public static void RemoveNameplate(string key)
+    
+    public static void RemoveNameplate(uint entityId)
     {
-        DalamudContext.PluginLog.Verbose($"Entering NameplateHandler.RemoveNameplate(): {key}");
-        Nameplates.TryRemove(key, out _);
+        DalamudContext.PluginLog.Verbose($"Entering NameplateHandler.RemoveNameplate(): {entityId}");
+        Nameplates.TryRemove(entityId, out _);
     }
 
     public static void Dispose()
     {
-        DalamudContext.PluginLog.Verbose("Entering NameplateHandler.Dispose()");
-        try
+        if (namePlateGuiHandler != null)
         {
-            if (internalNameplateManager == null) return;
-            internalNameplateManager.Hooks.AddonNamePlate_SetPlayerNameManaged -= OnNameplateUpdate;
-            internalNameplateManager.Dispose();
-        }
-        catch (Exception ex)
-        {
-            DalamudContext.PluginLog.Error(ex, "Failed to dispose NameplateHandler properly.");
+            namePlateGuiHandler.Dispose();
+            namePlateGuiHandler.OnNamePlateUpdate -= UpdateNameplates;
+            namePlateGuiHandler = null;
         }
     }
+     
 
-    private static void OnNameplateUpdate(AddonNamePlate_SetPlayerNameManagedEventArgs eventArgs)
+    public static void RefreshNameplates() => Task.Run(() =>
     {
-        DalamudContext.PluginLog.Verbose("Entering NameplateHandler.OnNameplateUpdate()");
-        var pc = InternalNameplateManager.GetNameplateGameObject<PlayerCharacter>(eventArgs.SafeNameplateObject);
-        if (pc == null)
+        DalamudContext.PluginLog.Debug("Entering NameplateHandler.RefreshNameplates()");
+        var currentLocation = DalamudContext.PlayerLocationManager.GetCurrentLocation();
+        if (currentLocation == null)
         {
-            DalamudContext.PluginLog.Verbose("Failed to get player character.");
+            DalamudContext.PluginLog.Verbose("Failed to get current location.");
             return;
         }
 
-        var loc = DalamudContext.PlayerLocationManager.GetCurrentLocation();
-        if (loc == null)
+        foreach (var cachedNameplate in Nameplates)
         {
-            DalamudContext.PluginLog.Verbose("Failed to get player location.");
-            return;
-        }
-
-        var key = PlayerKeyBuilder.Build(pc.Name.TextValue, pc.HomeWorld.Id);
-        var nameplate = Nameplates.TryGetValue(key, out var nameplateValue) ? nameplateValue : null;
-        if (nameplate is not { CustomizeNameplate: true })
-        {
-            DalamudContext.PluginLog.Verbose("Player nameplate is not customized.");
-            return;
-        }
-
-        if (!nameplate.NameplateUseColorIfDead && pc.IsDead)
-        {
-            DalamudContext.PluginLog.Verbose("Player is dead, disabling.");
-            return;
-        }
-
-        var nameplateChanges = new NameplateChanges(eventArgs);
-        foreach (var element in Enum.GetValues<NameplateElements>())
-        {
-            if (element == NameplateElements.Title && string.IsNullOrEmpty(eventArgs.Title.ToString()) && !nameplate.HasCustomTitle)
+            var player = ServiceContext.PlayerDataService.GetPlayer(cachedNameplate.Key);
+            if (player == null)
             {
-                DalamudContext.PluginLog.Verbose("Player does not have a title.");
+                DalamudContext.PluginLog.Verbose($"Failed to get player for {cachedNameplate.Key}.");
                 continue;
             }
-
-            if (element == NameplateElements.Title && nameplate.HasCustomTitle)
-            {
-                DalamudContext.PluginLog.Verbose("Player has a custom title.");
-                var titlePayload = new TextPayload($"《{nameplate.CustomTitle}》");
-                nameplateChanges.GetChange(element, StringPosition.Replace).Payloads.Add(titlePayload);
-            }
-
-            var colorPayload = new UIForegroundPayload((ushort)nameplate.Color);
-            var resetPayload = new UIForegroundPayload(0);
-
-            nameplateChanges.GetChange(element, StringPosition.Before).Payloads.Add(colorPayload);
-            nameplateChanges.GetChange(element, StringPosition.After).Payloads.Add(resetPayload);
+        
+            var nameplate = PlayerNameplateService.GetPlayerNameplate(player, currentLocation.LocationType);
+            Nameplates.AddOrUpdate(cachedNameplate.Key, nameplate, (_, _) => nameplate);
         }
+    });
 
-        NameplateUpdateFactory.ApplyNameplateChanges(new NameplateChangesProps(nameplateChanges));
+    private static void UpdateNameplates(INamePlateUpdateContext context, IReadOnlyList<INamePlateUpdateHandler> handlers)
+    {
+        foreach (var handler in handlers) {
+
+            // only apply to players
+            if (handler is { NamePlateKind: NamePlateKind.PlayerCharacter, PlayerCharacter: not null })
+            {
+                // get nameplate from cache 
+                var nameplate = Nameplates.GetValueOrDefault(handler.PlayerCharacter.EntityId);
+                
+                // if nameplate is not customized, skip
+                if (nameplate is not { CustomizeNameplate: true }) continue;
+                
+                // apply title
+                if (nameplate is { HasCustomTitle: true, CustomTitle: not null })
+                {
+                    handler.DisplayTitle = true;
+                    handler.Title = nameplate.CustomTitle;
+                }
+                
+                // stop here if dead and not using color
+                if (handler.PlayerCharacter.IsDead && !nameplate.NameplateUseColorIfDead) continue;
+    
+                // apply color
+                if (!string.IsNullOrEmpty(handler.Title.TextValue))
+                {
+                    handler.TitleParts.LeftQuote = nameplate.TitleLeftQuote;
+                    handler.TitleParts.RightQuote = nameplate.TitleRightQuote;
+                }
+
+                if (!string.IsNullOrEmpty(handler.FreeCompanyTag.TextValue))
+                {
+                    handler.FreeCompanyTagParts.LeftQuote = nameplate.FreeCompanyLeftQuote;
+                    handler.FreeCompanyTagParts.RightQuote = nameplate.FreeCompanyRightQuote;
+                }
+                
+                handler.NameParts.TextWrap = nameplate.NameTextWrap;
+
+            }
+        }
     }
 }

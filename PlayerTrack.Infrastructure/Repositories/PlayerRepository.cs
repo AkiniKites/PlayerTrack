@@ -128,11 +128,11 @@ public class PlayerRepository : BaseRepository
             name = @name,
             notes = @notes,
             lodestone_id = @lodestone_id,
-            object_id = @object_id,
             world_id = @world_id,
             last_territory_type = @last_territory_type,
             updated = @updated,
-            content_id = @content_id
+            content_id = @content_id,
+            entity_id = @entity_id
         WHERE id = @id";
             this.Connection.Execute(sql, playerDto);
             return true;
@@ -141,54 +141,6 @@ public class PlayerRepository : BaseRepository
         {
             DalamudContext.PluginLog.Error(ex, $"Failed to update player with PlayerID {player.Id} ({player.Key}).");
             return false;
-        }
-    }
-
-    public List<Player>? GetPlayersByLodestoneId(uint lodestoneId)
-    {
-        DalamudContext.PluginLog.Verbose($"Entering PlayerRepository.GetPlayersByLodestoneId(): {lodestoneId}");
-        try
-        {
-            const string sql = @"SELECT * FROM players WHERE lodestone_id = @lodestone_id";
-            var playerDTOs = this.Connection.Query<PlayerDTO>(sql, new { lodestone_id = lodestoneId }).ToList();
-            return playerDTOs.Select(dto => this.Mapper.Map<Player>(dto)).ToList();
-        }
-        catch (Exception ex)
-        {
-            DalamudContext.PluginLog.Error(ex, $"Failed to fetch players by LodestoneID {lodestoneId}.");
-            return null;
-        }
-    }
-
-    public Player? GetPlayerByObjectId(uint objectId)
-    {
-        DalamudContext.PluginLog.Verbose($"Entering PlayerRepository.GetPlayerByObjectId(): {objectId}");
-        try
-        {
-            const string sql = @"SELECT * FROM players WHERE object_id = @object_id";
-            var playerDTO = this.Connection.QueryFirstOrDefault<PlayerDTO>(sql, new { object_id = objectId });
-            return playerDTO == null ? null : this.Mapper.Map<Player>(playerDTO);
-        }
-        catch (Exception ex)
-        {
-            DalamudContext.PluginLog.Error(ex, $"Failed to fetch player by ObjectID {objectId}.");
-            return null;
-        }
-    }
-    
-    public Player? GetPlayerById(int playerId)
-    {
-        DalamudContext.PluginLog.Verbose($"Entering PlayerRepository.GetPlayerById(): {playerId}");
-        try
-        {
-            const string sql = @"SELECT * FROM players WHERE id = @player_id";
-            var playerDTO = this.Connection.QueryFirstOrDefault<PlayerDTO>(sql, new { player_id = playerId });
-            return playerDTO == null ? null : this.Mapper.Map<Player>(playerDTO);
-        }
-        catch (Exception ex)
-        {
-            DalamudContext.PluginLog.Error(ex, $"Failed to fetch player by PlayerID {playerId}.");
-            return null;
         }
     }
 
@@ -238,10 +190,10 @@ public class PlayerRepository : BaseRepository
         }
     }
 
-    public int CreatePlayer(Player player, bool setTimestamps = true)
+    public int CreatePlayer(Player player, ulong contentId, bool setTimestamps = true)
     {
-        const string checkExistenceSql = "SELECT id FROM players WHERE key = @key";
-        var existingId = this.Connection.ExecuteScalar<int?>(checkExistenceSql, new { key = player.Key });
+        const string checkExistenceSql = "SELECT id FROM players WHERE key = @key AND content_id = @content_id";
+        var existingId = this.Connection.ExecuteScalar<int?>(checkExistenceSql, new { key = player.Key, content_id = contentId });
 
         if (existingId.HasValue)
         {
@@ -270,10 +222,10 @@ public class PlayerRepository : BaseRepository
             name,
             notes,
             lodestone_id,
-            object_id,
             world_id,
             last_territory_type,
-            content_id)
+            content_id,
+            entity_id)
         VALUES (
             @created,
             @updated,
@@ -289,10 +241,10 @@ public class PlayerRepository : BaseRepository
             @name,
             @notes,
             @lodestone_id,
-            @object_id,
             @world_id,
             @last_territory_type,
-            @content_id)
+            @content_id,
+            @entity_id)
         RETURNING id";
 
         var newId = this.Connection.ExecuteScalar<int>(sql, playerDto);
@@ -333,9 +285,10 @@ public class PlayerRepository : BaseRepository
                 name,
                 notes,
                 lodestone_id,
-                object_id,
                 world_id,
-                last_territory_type)
+                last_territory_type,
+                content_id,
+                entity_id)
             VALUES (
                 @id,
                 @created,
@@ -352,9 +305,10 @@ public class PlayerRepository : BaseRepository
                 @name,
                 @notes,
                 @lodestone_id,
-                @object_id,
                 @world_id,
-                @last_territory_type)";
+                @last_territory_type,
+                @content_id,
+                @entity_id)";
 
             this.Connection.Execute(sql, playerDto, transaction);
 

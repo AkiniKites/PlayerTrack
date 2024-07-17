@@ -33,16 +33,12 @@ public class LodestoneLookup
     public void SetLodestoneStatus(LodestoneStatus lodestoneStatus)
     {
         this.LodestoneStatus = lodestoneStatus;
-        if (this.LodestoneStatus is 
+        this.IsDone = this.LodestoneStatus is 
             LodestoneStatus.Verified or 
             LodestoneStatus.Banned or 
             LodestoneStatus.NotApplicable or 
             LodestoneStatus.Cancelled or
-            LodestoneStatus.Unavailable
-            )
-        {
-            this.IsDone = true;
-        }
+            LodestoneStatus.Unavailable;
     }
     
     public void SetLodestoneId(uint lodestoneId)
@@ -55,7 +51,7 @@ public class LodestoneLookup
     {
         this.FailureCount++;
 
-        if (this.FailureCount < 3 && allowRetry)
+        if (this.FailureCount < 4 && allowRetry)
         {
             this.SetLodestoneStatus(LodestoneStatus.Failed);
         }

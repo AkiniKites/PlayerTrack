@@ -9,6 +9,7 @@ using ImGuiNET;
 using PlayerTrack.Domain;
 using PlayerTrack.Models;
 using PlayerTrack.UserInterface.Components;
+using PlayerTrack.UserInterface.Helpers;
 using PlayerTrack.UserInterface.Main.Presenters;
 
 namespace PlayerTrack.UserInterface.Main.Components;
@@ -85,9 +86,8 @@ public class PlayerSummaryComponent : ViewComponent
         this.DrawLastSeen(player);
         this.DrawFreeCompany(player);
         this.DrawLastLocation(player);
-        this.DrawLodestone(player);
-        this.DrawSeenCount(player);
         this.DrawAppearance(player);
+        this.DrawSeenCount(player);
         this.DrawCategoryTagHeadings();
         this.DrawCategoryTagAssignment(player);
         this.DrawCategoryTagAssignments(player);
@@ -149,25 +149,6 @@ public class PlayerSummaryComponent : ViewComponent
         LocGui.Text("SeenCount");
         ImGuiHelpers.ScaledRelativeSameLine(this.currentOffsets[2]);
         LocGui.Text(player.SeenCount);
-    }
-
-    private void DrawLodestone(PlayerView player)
-    {
-        LocGui.Text("Lodestone");
-        ImGuiHelpers.ScaledRelativeSameLine(this.currentOffsets[0]);
-        LocGui.TextColored(player.Lodestone, player.LodestoneColor);
-        if (player.LodestoneStatus == LodestoneStatus.Verified)
-        {
-            if (ImGui.IsItemHovered())
-            {
-                ImGui.SetMouseCursor(ImGuiMouseCursor.Hand);
-            }
-
-            if (ImGui.IsItemClicked())
-            {
-                PlayerLodestoneService.OpenLodestoneProfile(player.LodestoneId);
-            }
-        }
     }
 
     private void DrawLastLocation(PlayerView player)

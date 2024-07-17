@@ -1,113 +1,102 @@
-﻿using System.Timers;
+﻿using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Dalamud.DrunkenToad.Extensions;
+using Dalamud.Plugin.Services;
 
 namespace PlayerTrack.Domain;
 
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Common;
 using Dalamud.DrunkenToad.Core;
 using Dalamud.DrunkenToad.Core.Models;
 using Dalamud.DrunkenToad.Helpers;
-
-using Infrastructure;
 using Models;
 
 public class PlayerProcessService
 {
+    private volatile bool isProcessing;
+    private readonly ReaderWriterLockSlim locker = new ();
     public event Action<Player>? PlayerSelected;
-
     public event Action<Player>? CurrentPlayerAdded;
-
     public event Action<Player>? CurrentPlayerRemoved;
     
-    private readonly Timer reconcileCurrentPlayerTimer;
-
     public PlayerProcessService()
     {
-        this.reconcileCurrentPlayerTimer = new Timer(30000);
-        this.reconcileCurrentPlayerTimer.Elapsed += this.ReconcileCurrentPlayersTimerOnElapsed;
-        this.reconcileCurrentPlayerTimer.Start();
+        DalamudContext.GameFramework.Update += this.ProcessCurrentPlayers;
     }
 
     public void Dispose()
     {
-        this.reconcileCurrentPlayerTimer.Stop();
-        this.reconcileCurrentPlayerTimer.Dispose();
+        DalamudContext.GameFramework.Update -= this.ProcessCurrentPlayers;
+        locker.Dispose();
     }
     
-    private void ReconcileCurrentPlayersTimerOnElapsed(object? sender, ElapsedEventArgs e)
+    private void ProcessCurrentPlayers(IFramework framework)
     {
         DalamudContext.PluginLog.Verbose("Entering PlayerProcessService.ReconcileCurrentPlayerTimerOnElapsed()");
+        locker.EnterWriteLock();
         try
         {
-            if (ServiceContext.ConfigService.GetConfig().PlayerListFilter == PlayerListFilter.CurrentPlayers)
+            if (isProcessing) return;
+            isProcessing = true;
+        }
+        finally
+        {
+            locker.ExitWriteLock();
+        }
+        
+        DalamudContext.GameFramework.RunOnFrameworkThread(() =>
+        {
+            var objectPlayers = DalamudContext.ObjectCollection.GetPlayers().ToList();
+
+            Task.Run(() =>
             {
-                var currentPlayers = ServiceContext.PlayerCacheService.GetCurrentPlayers();
-                if (currentPlayers.Count > 0)
+                try
                 {
-                    foreach (var player in currentPlayers)
+                    var currentPlayers = ServiceContext.PlayerCacheService.GetCurrentPlayers();
+                    if (currentPlayers.Count > 0)
                     {
-                        var toadPlayer = DalamudContext.PlayerEventDispatcher.GetPlayerByNameAndWorldId(player.Name, player.WorldId);
-                        if (toadPlayer == null)
+                        foreach (var currentPlayer in currentPlayers)
                         {
-                            DalamudContext.PluginLog.Verbose($"Player not found, removing from current players: {player.Name}, {player.WorldId}");
-                            this.RemoveCurrentPlayer(player);
+                            if (objectPlayers.All(p => p.ContentId != currentPlayer.ContentId))
+                            {
+                                DalamudContext.PluginLog.Verbose($"Removing current player: {currentPlayer.ContentId}, {currentPlayer.Name}@{currentPlayer.WorldId}");
+                                this.RemoveCurrentPlayer(currentPlayer);
+                            }
+                        }
+                    }
+
+                    if (objectPlayers.Count > 0)
+                    {
+                        foreach (var objectPlayer in objectPlayers)
+                        {
+                            var currentPlayer = currentPlayers.FirstOrDefault(p => p.ContentId == objectPlayer.ContentId);
+                            if (currentPlayer == null)
+                            {
+                                DalamudContext.PluginLog.Verbose($"Adding current player: {objectPlayer.ContentId}, {objectPlayer.Name}");
+                                this.AddOrUpdatePlayer(objectPlayer);
+                            }
                         }
                     }
                 }
-            }
-        }
-        catch (Exception ex)
-        {
-            DalamudContext.PluginLog.Error(ex, "Failed to reconcile current players.");
-        }
+                finally
+                {
+                    locker.EnterWriteLock();
+                    try
+                    {
+                        isProcessing = false;
+                    }
+                    finally
+                    {
+                        locker.ExitWriteLock();
+                    }
+                }
+            });
+        });
     }
-
-    public static void HandleDuplicatePlayers(List<Player> players)
-    {
-        DalamudContext.PluginLog.Verbose($"Entering PlayerMergeService.HandleDuplicatePlayers(): {players.Count}");
-        if (players.Count < 2)
-        {
-            return;
-        }
-
-        var sortedPlayers = new List<Player>(
-            players.OrderBy(p => p.LodestoneVerifiedOn)
-                .ThenBy(p => p.Created)
-                .ThenBy(p => p.Id));
-        var oldestPlayer = sortedPlayers[0];
-        var newestPlayers = sortedPlayers.Skip(1).ToList();
-
-        foreach (var newPlayer in newestPlayers)
-        {
-            ServiceContext.PlayerDataService.MergePlayers(oldestPlayer, newPlayer.Id);
-        }
-    }
-
-    public static void CheckForDuplicates() => Task.Run(() =>
-    {
-        DalamudContext.PluginLog.Verbose("Entering PlayerMergeService.CheckForDuplicates()");
-        var allPlayers = ServiceContext.PlayerDataService.GetAllPlayers();
-        var groupedPlayers = allPlayers.Where(p => p.LodestoneId > 0)
-            .GroupBy(p => p.LodestoneId);
-
-        foreach (var group in groupedPlayers)
-        {
-            HandleDuplicatePlayers(group.ToList());
-        }
-    });
-
-    public static void CheckForDuplicates(Player player) => Task.Run(() =>
-    {
-        DalamudContext.PluginLog.Verbose($"Entering PlayerMergeService.CheckForDuplicates(): {player.Id}");
-        if (player.LodestoneId <= 0) return;
-        var players = RepositoryContext.PlayerRepository.GetPlayersByLodestoneId(player.LodestoneId) ?? new List<Player>();
-        HandleDuplicatePlayers(players);
-    });
-
+        
     public static void CreateNewPlayer(string name, uint worldId, ulong contentId = 0)
     {
         var key = PlayerKeyBuilder.Build(name, worldId);
@@ -123,10 +112,10 @@ public class PlayerProcessService
         ServiceContext.PlayerDataService.AddPlayer(player);
     }
 
-    public void RemoveCurrentPlayer(uint playerObjectId)
+    public void RemoveCurrentPlayer(ulong playerContentId)
     {
-        DalamudContext.PluginLog.Verbose($"Entering PlayerProcessService.RemoveCurrentPlayer(): {playerObjectId}");
-        var player = ServiceContext.PlayerDataService.GetPlayer(playerObjectId);
+        DalamudContext.PluginLog.Verbose($"Entering PlayerProcessService.RemoveCurrentPlayer(): {playerContentId}");
+        var player = ServiceContext.PlayerDataService.GetPlayer(playerContentId);
         if (player == null)
         {
             DalamudContext.PluginLog.Verbose("Player not found.");
@@ -149,11 +138,9 @@ public class PlayerProcessService
         this.PlayerSelected?.Invoke(player);
     }
 
-    public void RegisterCurrentPlayer(Player player) => this.CurrentPlayerAdded?.Invoke(player);
-
     public void AddOrUpdatePlayer(ToadPlayer toadPlayer, bool isCurrent = true, bool isUserRequest = false)
     {
-        DalamudContext.PluginLog.Verbose($"Entering PlayerProcessService.AddOrUpdatePlayer(): {toadPlayer.Id}, {toadPlayer.Name}, {toadPlayer.HomeWorld}, {isUserRequest}");
+        DalamudContext.PluginLog.Verbose($"Entering PlayerProcessService.AddOrUpdatePlayer(): {toadPlayer.ContentId}, {toadPlayer.Name}, {toadPlayer.HomeWorld}, {isUserRequest}");
         var enc = ServiceContext.EncounterService.GetCurrentEncounter();
 
         if (enc == null)
@@ -167,16 +154,16 @@ public class PlayerProcessService
             DalamudContext.PluginLog.Verbose("Encounter is not set to save players.");
             return;
         }
-
-        var key = PlayerKeyBuilder.Build(toadPlayer.Name, toadPlayer.HomeWorld);
-        var player = ServiceContext.PlayerDataService.GetPlayer(key);
+        
+        var player = ServiceContext.PlayerDataService.GetPlayer(toadPlayer.ContentId, toadPlayer.Name, toadPlayer.HomeWorld);
         var loc = PlayerEncounterService.GetEncounterLocation();
 
         if (player == null)
         {
             DalamudContext.PluginLog.Verbose("Player not found, creating new player.");
+            var key = PlayerKeyBuilder.Build(toadPlayer.Name, toadPlayer.HomeWorld);
             this.CreateNewPlayer(toadPlayer, key, isCurrent, enc.CategoryId, loc);
-            player = ServiceContext.PlayerDataService.GetPlayer(key);
+            player = ServiceContext.PlayerDataService.GetPlayer(toadPlayer.ContentId, toadPlayer.Name, toadPlayer.HomeWorld);
             if (player != null)
             {
                 if (isUserRequest)
@@ -222,7 +209,8 @@ public class PlayerProcessService
         var player = new Player
         {
             Key = key,
-            ObjectId = toadPlayer.Id,
+            EntityId = toadPlayer.EntityId,
+            ContentId = toadPlayer.ContentId,
             Name = toadPlayer.Name,
             WorldId = toadPlayer.HomeWorld,
             PrimaryCategoryId = categoryId,
@@ -249,10 +237,20 @@ public class PlayerProcessService
             {
                 PlayerChangeService.AddCustomizeHistory(player.Id, player.Customize);
             }
+            
+            if (player.Name != toadPlayer.Name || player.WorldId != toadPlayer.HomeWorld)
+            {
+                PlayerChangeService.AddNameWorldHistory(player.Id, player.Name, player.WorldId);
+                ServiceContext.PlayerAlertService.SendPlayerNameWorldChangeAlert(player, player.Name, player.WorldId, toadPlayer.Name, toadPlayer.HomeWorld);
+            }
 
+            player.Key = PlayerKeyBuilder.Build(toadPlayer.Name, toadPlayer.HomeWorld);
+            player.Name = toadPlayer.Name;
+            player.WorldId = toadPlayer.HomeWorld;
             player.Customize = toadPlayer.Customize;
             player.FreeCompany = PlayerFCHelper.CheckFreeCompany(toadPlayer.CompanyTag, player.FreeCompany, loc.InContent());
-            player.ObjectId = toadPlayer.Id;
+            player.EntityId = toadPlayer.EntityId;
+            player.ContentId = toadPlayer.ContentId;
             player.SeenCount += 1;
             player.LastTerritoryType = loc.TerritoryId;
             player.LastSeen = UnixTimestampHelper.CurrentTime();
