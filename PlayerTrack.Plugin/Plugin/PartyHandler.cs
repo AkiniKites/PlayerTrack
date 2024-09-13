@@ -45,8 +45,7 @@ internal static class PartyHandler
 
     private static void PartyHandler_PlayerJoined(PartyMemeber member)
     {
-        var key = PlayerKeyBuilder.Build(member.Name, member.HomeWorld);
-        var player = ServiceContext.PlayerDataService.GetPlayer(key);
+        var player = ServiceContext.PlayerDataService.GetPlayer(member.Name, member.HomeWorld);
 
         if (player?.AssignedCategories.Any() == true)
         {
@@ -62,7 +61,7 @@ internal static class PartyHandler
         ticks = 0;
 
         var added = new HashSet<uint>();
-        var self = DalamudContext.ClientStateHandler.LocalPlayer?.ObjectId;
+        var self = DalamudContext.ClientStateHandler.LocalPlayer?.EntityId;
 
         foreach (var player in DalamudContext.PartyCollection)
         {
@@ -76,20 +75,20 @@ internal static class PartyHandler
         var cwProxy = InfoProxyCrossRealm.Instance();
         if (cwProxy->IsInCrossRealmParty != 0)
         {
-            for (var i = 0; i < cwProxy->CrossRealmGroupArraySpan.Length; i++)
+            for (var i = 0; i < cwProxy->CrossRealmGroups.Length; i++)
             {
-                var crossRealmGroup = cwProxy->CrossRealmGroupArraySpan[i];
+                var crossRealmGroup = cwProxy->CrossRealmGroups[i];
                 for (var j = 0; j < crossRealmGroup.GroupMemberCount; j++)
                 {
-                    var player = crossRealmGroup.GroupMembersSpan[j];
+                    var player = crossRealmGroup.GroupMembers[j];
 
-                    if (player.ObjectId == self)
+                    if (player.EntityId == self)
                         continue;
 
-                    added.Add(player.ObjectId);
-                    var name = MemoryHelper.ReadStringNullTerminated((nint)player.Name);
+                    added.Add(player.EntityId);
+                    var name = player.NameString;
 
-                    MaybeAddPlayer(player.ObjectId, name, (uint)player.HomeWorld);
+                    MaybeAddPlayer(player.EntityId, name, (uint)player.HomeWorld);
                 }
             }
         }
