@@ -69,7 +69,7 @@ internal static class PartyHandler
                 continue;
 
             added.Add(player.ObjectId);
-            MaybeAddPlayer(player.ObjectId, player.Name.ToString(), player.World.Id);
+            MaybeAddPlayer(player.ObjectId, player.Name.ToString(), player.World.RowId);
         }
 
         var cwProxy = InfoProxyCrossRealm.Instance();
