@@ -1,0 +1,77 @@
+﻿<root>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="AddPlayer" xml:space="preserve">
+        <value>Добавить игрока</value>
+    </data>
+    <data name="BackupErrorMessage" xml:space="preserve">
+        <value>Что-то пошло не так. Перезапустите компьютер и попробуйте снова.</value>
+    </data>
+    <data name="Banned" xml:space="preserve">
+        <value>Заблокирован</value>
+    </data>
+    <data name="Cancel" xml:space="preserve">
+        <value>Отмена</value>
+    </data>
+    <data name="Categories" xml:space="preserve">
+        <value>Категории</value>
+    </data>
+    <data name="ForDevelopersTitle" xml:space="preserve">
+        <value>Для разработчиков</value>
+    </data>
+    <data name="ForEveryoneTitle" xml:space="preserve">
+        <value>Для всех</value>
+    </data>
+    <data name="ForTranslatorsTitle" xml:space="preserve">
+        <value>Для переводчиков</value>
+    </data>
+    <data name="FreeCompany" xml:space="preserve">
+        <value>ФК</value>
+    </data>
+    <data name="General" xml:space="preserve">
+        <value>Общее</value>
+    </data>
+    <data name="Gigabyte" xml:space="preserve">
+        <value>ГБ</value>
+    </data>
+    <data name="HelpWithTranslation" xml:space="preserve">
+        <value>Вы можете помочь с переводами на PlayerTrack.</value>
+    </data>
+    <data name="Hour" xml:space="preserve">
+        <value>ч</value>
+    </data>
+    <data name="Icon" xml:space="preserve">
+        <value>Иконка</value>
+    </data>
+    <data name="Icons" xml:space="preserve">
+        <value>Иконки</value>
+    </data>
+    <data name="Inherit" xml:space="preserve">
+        <value>Наследовать</value>
+    </data>
+    <data name="Integrations" xml:space="preserve">
+        <value>Интеграции</value>
+    </data>
+    <data name="InvalidNameError" xml:space="preserve">
+        <value>Пожалуйста, правильно введите имя.</value>
+    </data>
+    <data name="KeepEncountersFromLast90Days" xml:space="preserve">
+        <value>за последние 90 дней</value>
+    </data>
+    <data name="KeepPlayerSettings" xml:space="preserve">
+        <value>Сохранить настройки для игроков</value>
+    </data>
+    <data name="Kilobyte" xml:space="preserve">
+        <value>КБ</value>
+    </data>
+</root>

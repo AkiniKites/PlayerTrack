@@ -1,0 +1,53 @@
+﻿<root>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="Actions" xml:space="preserve">
+        <value>アクション</value>
+    </data>
+    <data name="AddEncounters" xml:space="preserve">
+        <value>エンカウンターを追加</value>
+    </data>
+    <data name="AddPlayer" xml:space="preserve">
+        <value>プレイヤーを追加する:</value>
+    </data>
+    <data name="AddPlayerInstructions" xml:space="preserve">
+        <value>手動でリストにプレーヤーを追加する。</value>
+    </data>
+    <data name="AddPlayers" xml:space="preserve">
+        <value>プレイヤーを追加する:</value>
+    </data>
+    <data name="Ago" xml:space="preserve">
+        <value>前</value>
+    </data>
+    <data name="Alerts" xml:space="preserve">
+        <value>アラート</value>
+    </data>
+    <data name="AllPlayers" xml:space="preserve">
+        <value>すべてのプレイヤー</value>
+    </data>
+    <data name="Appearance" xml:space="preserve">
+        <value>表示</value>
+    </data>
+    <data name="AssignPlayerCategory" xml:space="preserve">
+        <value>カテゴリの設定</value>
+    </data>
+    <data name="Automatic" xml:space="preserve">
+        <value>自動</value>
+    </data>
+    <data name="BackupErrorMessage" xml:space="preserve">
+        <value>問題が発生しました。コンピュータを再起動して、もう一度お試しください。</value>
+    </data>
+    <data name="Backups" xml:space="preserve">
+        <value>バックアップ</value>
+    </data>
+</root>
