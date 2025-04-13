@@ -1,4 +1,4 @@
-﻿using Dalamud.DrunkenToad.Core;
+using Dalamud.DrunkenToad.Core;
 using Dalamud.DrunkenToad.Core.Models;
 using Dalamud.Memory;
 using Dalamud.Plugin.Services;
@@ -16,7 +16,7 @@ using Dalamud.DrunkenToad.Extensions;
 using Dalamud.Game.Text.SeStringHandling;
 using System.Xml.Linq;
 
-namespace PlayerTrack.Plugin;
+namespace PlayerTrack;
 
 internal class PartyMemeber
 {
@@ -50,7 +50,7 @@ internal static class PartyHandler
         if (player?.AssignedCategories.Any() == true)
         {
             var categories = player.AssignedCategories.Select(x => x.Name);
-            DalamudContext.ChatGuiHandler.PluginPrintNotice($"{member.Name}: {String.Join(", ", categories)}");
+            DalamudContext.ChatGuiHandler.PluginPrintNotice($"{member.Name}: {string.Join(", ", categories)}");
         }
     }
 

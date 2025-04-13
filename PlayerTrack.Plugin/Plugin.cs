@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
@@ -59,6 +59,7 @@ public class Plugin : IDalamudPlugin
 
         RepositoryContext.Initialize(PluginInterface.GetPluginConfigDirectory());
         ServiceContext.Initialize();
+        PartyHandler.Initialize();
         RunPostStartup();
 
         PluginInterface.LanguageChanged += LanguageChanged;
@@ -72,6 +73,7 @@ public class Plugin : IDalamudPlugin
         GC.SuppressFinalize(this);
         try
         {
+            PartyHandler.Dispose();
             PlayerTrackProvider?.Dispose();
             CommandHandler.Dispose();
             NameplateHandler.Dispose();
