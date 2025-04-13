@@ -1,4 +1,4 @@
-﻿using Dalamud.Game.Text.SeStringHandling;
+using Dalamud.Game.Text.SeStringHandling;
 using Dalamud.Game.Text.SeStringHandling.Payloads;
 using PlayerTrack.Extensions;
 using PlayerTrack.Models;

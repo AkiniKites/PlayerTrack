@@ -1,13 +1,13 @@
-﻿using System.Numerics;
+using System.Numerics;
 using Dalamud.Interface.Colors;
-using Dalamud.Loc.ImGui;
-using ImGuiNET;
-using PlayerTrack.UserInterface.Components;
-using PlayerTrack.UserInterface.Main.Presenters;
-
-namespace PlayerTrack.UserInterface.Main.Components;
-
 using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
+using ImGuiNET;
+using PlayerTrack.Resource;
+using PlayerTrack.Windows.Components;
+using PlayerTrack.Windows.Main.Presenters;
+
+namespace PlayerTrack.Windows.Main.Components;
 
 public class PlayerEncounterComponent : ViewComponent
 {
@@ -16,52 +16,54 @@ public class PlayerEncounterComponent : ViewComponent
     private const float SameLineOffset3 = 230f;
     private const float SameLineOffset4 = 270f;
     private const float SameLineOffset5 = 300f;
-    private readonly IMainPresenter presenter;
+    private readonly IMainPresenter Presenter;
 
-    public PlayerEncounterComponent(IMainPresenter presenter) => this.presenter = presenter;
+    public PlayerEncounterComponent(IMainPresenter presenter)
+    {
+        Presenter = presenter;
+    }
 
     public override void Draw()
     {
-        var player = this.presenter.GetSelectedPlayer();
+        var player = Presenter.GetSelectedPlayer();
         if (player == null)
-        {
             return;
-        }
 
-        ImGui.BeginChild("###PlayerSummary_Encounter", new Vector2(-1, 0), false);
+        using var child = ImRaii.Child("###PlayerSummary_Encounter", new Vector2(-1, 0), false);
+        if (!child.Success)
+            return;
+
         if (player.Encounters.Count == 0)
         {
-            LocGui.Text("NoEncountersMessage");
+            ImGui.TextUnformatted(Language.NoEncountersMessage);
         }
         else
         {
-            LocGui.TextColored("Time", ImGuiColors.DalamudViolet);
+            Helper.TextColored(ImGuiColors.DalamudViolet, Language.Time);
             ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset1);
-            LocGui.TextColored("Hour", ImGuiColors.DalamudViolet);
+            Helper.TextColored(ImGuiColors.DalamudViolet, "Hour");
             ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset2);
-            LocGui.TextColored("Duration", ImGuiColors.DalamudViolet);
+            Helper.TextColored(ImGuiColors.DalamudViolet, Language.Duration);
+            ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset2);
+            Helper.TextColored(ImGuiColors.DalamudViolet, Language.Job);
             ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset3);
-            LocGui.TextColored("Job", ImGuiColors.DalamudViolet);
+            Helper.TextColored(ImGuiColors.DalamudViolet, Language.Level);
             ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset4);
-            LocGui.TextColored("Level", ImGuiColors.DalamudViolet);
-            ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset5);
-            LocGui.TextColored("Location", ImGuiColors.DalamudViolet);
+            Helper.TextColored(ImGuiColors.DalamudViolet, Language.Location);
             foreach (var enc in player.Encounters)
             {
-                LocGui.Text(enc.Time);
+                ImGui.TextUnformatted(enc.Time);
                 ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset1);
-                LocGui.Text(enc.TimeOfDay);
+                ImGui.TextUnformatted(enc.TimeOfDay);
                 ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset2);
-                LocGui.Text(enc.Duration);
+                ImGui.TextUnformatted(enc.Duration);
+                ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset2);
+                ImGui.TextUnformatted(enc.Job);
                 ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset3);
-                LocGui.Text(enc.Job);
+                ImGui.TextUnformatted(enc.Level);
                 ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset4);
-                LocGui.Text(enc.Level);
-                ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset5);
-                LocGui.Text(enc.Location);
+                ImGui.TextUnformatted(enc.Location);
             }
         }
-
-        ImGui.EndChild();
     }
 }

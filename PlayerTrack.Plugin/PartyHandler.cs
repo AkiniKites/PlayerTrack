@@ -1,20 +1,10 @@
-using Dalamud.DrunkenToad.Core;
-using Dalamud.DrunkenToad.Core.Models;
-using Dalamud.Memory;
 using Dalamud.Plugin.Services;
-using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.UI.Info;
-using PlayerTrack.Domain.Common;
 using PlayerTrack.Domain;
-using PlayerTrack.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Dalamud.DrunkenToad.Extensions;
-using Dalamud.Game.Text.SeStringHandling;
-using System.Xml.Linq;
+using PlayerTrack.Extensions;
+using Dalamud.Game.Text.SeStringHandling.Payloads;
 
 namespace PlayerTrack;
 
@@ -39,7 +29,7 @@ internal static class PartyHandler
 
     public static void Initialize()
     {
-        DalamudContext.GameFramework.Update += GameFramework_Update;
+        Plugin.GameFramework.Update += GameFramework_Update;
         PlayerJoined += PartyHandler_PlayerJoined;
     }
 
@@ -50,7 +40,9 @@ internal static class PartyHandler
         if (player?.AssignedCategories.Any() == true)
         {
             var categories = player.AssignedCategories.Select(x => x.Name);
-            DalamudContext.ChatGuiHandler.PluginPrintNotice($"{member.Name}: {string.Join(", ", categories)}");
+            Plugin.ChatGuiHandler.PluginPrintNotice([
+                new TextPayload($"{member.Name}: {string.Join(", ", categories)}")
+                ]);
         }
     }
 
@@ -61,9 +53,9 @@ internal static class PartyHandler
         ticks = 0;
 
         var added = new HashSet<uint>();
-        var self = DalamudContext.ClientStateHandler.LocalPlayer?.EntityId;
+        var self = Plugin.ClientStateHandler.LocalPlayer?.EntityId;
 
-        foreach (var player in DalamudContext.PartyCollection)
+        foreach (var player in Plugin.PartyCollection)
         {
             if (player.ObjectId == self)
                 continue;
@@ -124,7 +116,7 @@ internal static class PartyHandler
 
     public static void Dispose()
     {
-        DalamudContext.GameFramework.Update -= GameFramework_Update;
+        Plugin.GameFramework.Update -= GameFramework_Update;
         PlayerJoined -= PartyHandler_PlayerJoined;
     }
 }

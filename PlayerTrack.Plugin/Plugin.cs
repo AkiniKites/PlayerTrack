@@ -33,6 +33,7 @@ public class Plugin : IDalamudPlugin
     [PluginService] public static INamePlateGui NamePlateGuiHandler { get; set; } = null!;
     [PluginService] public static IDataManager DataManager { get; set; } = null!;
     [PluginService] public static ITargetManager TargetManager { get; set; } = null!;
+    [PluginService] public static IPartyList PartyCollection { get; private set; } = null!;
 
     public static WindowManager WindowManager { get; set; } = null!;
 
