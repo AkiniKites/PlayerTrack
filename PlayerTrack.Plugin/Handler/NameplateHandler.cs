@@ -106,7 +106,8 @@ public static class NameplateHandler
                     handler.FreeCompanyTagParts.RightQuote = nameplate.FreeCompanyRightQuote;
                 }
 
-                handler.NameParts.TextWrap = nameplate.NameTextWrap;
+                if (nameplate.NameTextWrap is not null)
+                    handler.NameParts.TextWrap = nameplate.NameTextWrap;
             }
         }
     }

@@ -16,7 +16,7 @@ public class PlayerNameplate
 
     public SeString? TitleRightQuote { get; set; }
 
-    public (SeString, SeString) NameTextWrap { get; set; }
+    public (SeString, SeString)? NameTextWrap { get; set; }
 
     public SeString? FreeCompanyLeftQuote { get; set; }
 
