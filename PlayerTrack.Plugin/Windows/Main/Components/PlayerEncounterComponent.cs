@@ -44,11 +44,11 @@ public class PlayerEncounterComponent : ViewComponent
             Helper.TextColored(ImGuiColors.DalamudViolet, "Hour");
             ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset2);
             Helper.TextColored(ImGuiColors.DalamudViolet, Language.Duration);
-            ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset2);
-            Helper.TextColored(ImGuiColors.DalamudViolet, Language.Job);
             ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset3);
-            Helper.TextColored(ImGuiColors.DalamudViolet, Language.Level);
+            Helper.TextColored(ImGuiColors.DalamudViolet, Language.Job);
             ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset4);
+            Helper.TextColored(ImGuiColors.DalamudViolet, Language.Level);
+            ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset5);
             Helper.TextColored(ImGuiColors.DalamudViolet, Language.Location);
             foreach (var enc in player.Encounters)
             {
@@ -57,11 +57,11 @@ public class PlayerEncounterComponent : ViewComponent
                 ImGui.TextUnformatted(enc.TimeOfDay);
                 ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset2);
                 ImGui.TextUnformatted(enc.Duration);
-                ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset2);
-                ImGui.TextUnformatted(enc.Job);
                 ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset3);
-                ImGui.TextUnformatted(enc.Level);
+                ImGui.TextUnformatted(enc.Job);
                 ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset4);
+                ImGui.TextUnformatted(enc.Level);
+                ImGuiHelpers.ScaledRelativeSameLine(SameLineOffset5);
                 ImGui.TextUnformatted(enc.Location);
             }
         }
