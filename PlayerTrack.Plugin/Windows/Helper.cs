@@ -7,7 +7,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
-using ImGuiNET;
+using Dalamud.Bindings.ImGui;
 using PlayerTrack.Enums;
 using PlayerTrack.Resource;
 
@@ -146,7 +146,7 @@ public static class Helper
         var label = includeLabel ? key : $"###{key}_Combo";
         ImGui.SetNextItemWidth(comboWidth == -1 ? comboWidth : CalcScaledComboWidth(comboWidth));
         var val = Convert.ToInt32(value);
-        if (ImGui.Combo(label, ref val, localizedOptions.ToArray(), localizedOptions.Count))
+        if (ImGui.Combo(label, ref val, localizedOptions.ToArray()))
         {
             value = (T)(object)val;
             isChanged = true;
@@ -171,7 +171,7 @@ public static class Helper
 
         ImGuiHelpers.ScaledDummy(1f);
         ImGui.SetNextItemWidth(CalcScaledComboWidth(comboWidth));
-        if (ImGui.Combo($"{key}###{suffix}_Combo", ref value, localizedOptions.ToArray(), localizedOptions.Count))
+        if (ImGui.Combo($"{key}###{suffix}_Combo", ref value, localizedOptions.ToArray()))
             isChanged = true;
 
         return isChanged;
@@ -263,7 +263,7 @@ public static class Helper
 
         var label = includeLabel ? key : $"###{key}";
         ImGui.SetNextItemWidth(comboWidth == -1 ? comboWidth : CalcScaledComboWidth(comboWidth));
-        if (ImGui.Combo(label, ref value, localizedOptions.ToArray(), localizedOptions.Count))
+        if (ImGui.Combo(label, ref value, localizedOptions.ToArray()))
             isChanged = true;
 
         return isChanged;
@@ -677,7 +677,7 @@ public unsafe class ListClipper : IEnumerable<(int, int)>, IDisposable
         CurrentColumns = cols;
         CurrentRows = TwoDimensional ? items : (int)MathF.Ceiling((float)items / CurrentColumns);
         ItemRemainder = !TwoDimensional ? items % CurrentColumns : 0;
-        Clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper_ImGuiListClipper());
+        Clipper = new ImGuiListClipperPtr(ImGuiNative.ImGuiListClipper());
         Clipper.Begin(CurrentRows, itemHeight);
     }
 

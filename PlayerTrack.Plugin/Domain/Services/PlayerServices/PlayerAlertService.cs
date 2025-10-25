@@ -15,7 +15,7 @@ public class PlayerAlertService
     private static readonly Regex ProximityRegex = new(@"^(?<playerName>[A-Z][a-zA-Z'-]*\s[A-Z][a-zA-Z'-]*)(?<worldName>[A-Z][a-zA-Z]*)\s.*", RegexOptions.Compiled);
     private static readonly Regex NameWorldChangeRegex = new(@".*》\s*(?<playerName>[A-Z][a-zA-Z'-]*\s[A-Z][a-zA-Z'-]*)(?<worldName>[A-Z][a-zA-Z]*)$", RegexOptions.Compiled);
 
-    private readonly DalamudLinkPayload OpenPlayerTrackChatLinkHandler = Plugin.PluginInterface.AddChatLinkHandler((uint)ChatLinkHandler.OpenPlayerTrack, OnChatLinkClick);
+    private readonly DalamudLinkPayload OpenPlayerTrackChatLinkHandler = Plugin.ChatGuiHandler.AddChatLinkHandler(10001, OnChatLinkClick);
 
     public void SendPlayerNameWorldChangeAlert(
         Player player,
@@ -64,7 +64,7 @@ public class PlayerAlertService
 
     public void Dispose()
     {
-        Plugin.PluginInterface.RemoveChatLinkHandler((uint)ChatLinkHandler.OpenPlayerTrack);
+        Plugin.ChatGuiHandler.RemoveChatLinkHandler();
     }
 
     private static void OnChatLinkClick(uint id, SeString message)
