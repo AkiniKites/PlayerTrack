@@ -57,15 +57,15 @@ internal static class PartyHandler
 
         foreach (var player in Plugin.PartyCollection)
         {
-            if (player.ObjectId == self)
+            if (player.EntityId == self)
                 continue;
 
-            added.Add(player.ObjectId);
-            MaybeAddPlayer(player.ObjectId, player.Name.ToString(), player.World.RowId);
+            added.Add(player.EntityId);
+            MaybeAddPlayer(player.EntityId, player.Name.ToString(), player.World.RowId);
         }
 
         var cwProxy = InfoProxyCrossRealm.Instance();
-        if (cwProxy->IsInCrossRealmParty != 0)
+        if (cwProxy->IsInCrossRealmParty)
         {
             for (var i = 0; i < cwProxy->CrossRealmGroups.Length; i++)
             {
