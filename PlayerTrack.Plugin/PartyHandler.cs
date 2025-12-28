@@ -53,7 +53,7 @@ internal static class PartyHandler
         ticks = 0;
 
         var added = new HashSet<uint>();
-        var self = Plugin.ClientStateHandler.LocalPlayer?.EntityId;
+        var self = Plugin.ObjectTable.LocalPlayer?.EntityId;
 
         foreach (var player in Plugin.PartyCollection)
         {
