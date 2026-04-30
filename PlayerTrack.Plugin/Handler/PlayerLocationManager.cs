@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using PlayerTrack.Data;
 
 namespace PlayerTrack.Handler;
@@ -9,7 +9,7 @@ namespace PlayerTrack.Handler;
 /// </summary>
 public class PlayerLocationManager
 {
-    private ushort CurrentTerritoryType;
+    private uint CurrentTerritoryType;
 
     public delegate void LocationDelegate(LocationData toadLocation);
 
@@ -45,7 +45,7 @@ public class PlayerLocationManager
         OnLocationEnded = null;
     }
 
-    private void ProcessTerritoryChange(ushort newTerritoryType)
+    private void ProcessTerritoryChange(uint newTerritoryType)
     {
         if (CurrentTerritoryType != 0)
             OnLocationEnded?.Invoke(Sheets.Locations[CurrentTerritoryType]);

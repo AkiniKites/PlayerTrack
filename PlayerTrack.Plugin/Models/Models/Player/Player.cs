@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Interface;
@@ -47,7 +47,7 @@ public class Player : IComparable<Player>, IEquatable<Player>
 
     public uint WorldId { get; set; }
 
-    public ushort LastTerritoryType { get; set; }
+    public uint LastTerritoryType { get; set; }
 
     public ulong ContentId { get; set; }
 

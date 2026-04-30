@@ -1,4 +1,4 @@
-﻿namespace PlayerTrack.Data;
+namespace PlayerTrack.Data;
 
 /// <summary>
 /// Subset of key properties from IPlayerCharacter for eventing.

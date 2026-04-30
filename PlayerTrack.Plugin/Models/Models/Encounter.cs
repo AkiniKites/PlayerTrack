@@ -1,4 +1,4 @@
-﻿using Dapper.Contrib.Extensions;
+using Dapper.Contrib.Extensions;
 
 namespace PlayerTrack.Models;
 
@@ -6,7 +6,7 @@ public class Encounter
 {
     public int Id { get; set; }
 
-    public ushort TerritoryTypeId { get; set; }
+    public uint TerritoryTypeId { get; set; }
 
     public long Ended { get; set; }
 

@@ -45,7 +45,7 @@ public static class PlayerViewMapper
         return playerView;
     }
 
-    public static string GetLastLocation(ushort lastTerritoryType)
+    public static string GetLastLocation(uint lastTerritoryType)
     {
         var locationName = lastTerritoryType != 0 ? Sheets.Locations[lastTerritoryType].GetName() : null;
         return string.IsNullOrEmpty(locationName) ? Na : locationName;

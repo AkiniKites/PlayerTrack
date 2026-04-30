@@ -17,7 +17,7 @@ public static class Sheets
     public static readonly ReadOnlyDictionary<uint, RaceData> Races;
     public static readonly ReadOnlyDictionary<uint, UiColorData> UiColor;
     public static readonly ReadOnlyDictionary<uint, ClassJobData> ClassJobs;
-    public static readonly ReadOnlyDictionary<ushort, LocationData> Locations;
+    public static readonly ReadOnlyDictionary<uint, LocationData> Locations;
 
     public static readonly ExcelSheet<Race> RaceSheet;
     public static readonly ExcelSheet<Addon> AddonSheet;
@@ -67,7 +67,7 @@ public static class Sheets
         if (world == null)
             return false;
 
-        var region = WorldDcGroupTypeSheet.GetRowOrDefault(world.Value.DataCenter.RowId)?.Region ?? 0;
+        var region = WorldDcGroupTypeSheet.GetRowOrDefault(world.Value.DataCenter.RowId)?.Region.RowId ?? 0;
         return region == 7;
     }
 
@@ -110,13 +110,13 @@ public static class Sheets
     private static Dictionary<uint, WorldData> LoadWorlds()
     {
         var luminaWorlds = WorldSheet.Where(x => x.DataCenter.ValueNullable != null &&
-                                         (x.DataCenter.ValueNullable?.Region ?? 0) != 0 &&
+                                         (x.DataCenter.ValueNullable?.Region.RowId ?? 0) != 0 &&
                                          !string.IsNullOrWhiteSpace(x.DataCenter.ValueNullable?.Name.ExtractText()) &&
                                          !string.IsNullOrWhiteSpace(x.Name.ExtractText()) &&
                                          !string.IsNullOrWhiteSpace(x.InternalName.ExtractText()) &&
                                          !x.Name.ExtractText().Contains('-') &&
                                          !x.Name.ExtractText().Contains('_'))
-                             .Where(x => x.DataCenter.Value.Region != 5 ||
+                             .Where(x => x.DataCenter.Value.Region.RowId != 5 ||
                                          (x.RowId > 1000 && x.RowId != 1200 &&
                                           IsCJKString(x.Name.ExtractText())));
 
@@ -213,7 +213,7 @@ public static class Sheets
 
     private static Dictionary<uint, DCData> LoadDataCenters()
     {
-        var luminaDataCenters = WorldDcGroupTypeSheet.Where(dataCenter => !dataCenter.Name.IsEmpty && dataCenter.Region != 0 && dataCenter.Region != 7);
+        var luminaDataCenters = WorldDcGroupTypeSheet.Where(dataCenter => !dataCenter.Name.IsEmpty && dataCenter.Region.RowId != 0 && dataCenter.Region.RowId != 7);
 
         return luminaDataCenters.ToDictionary(
             luminaDataCenter => luminaDataCenter.RowId,
@@ -263,13 +263,13 @@ public static class Sheets
             uiColor => new UiColorData { Id = uiColor.RowId, Foreground = uiColor.Dark, Glow = uiColor.Light });
     }
 
-    private static Dictionary<ushort, LocationData> LoadLocations()
+    private static Dictionary<uint, LocationData> LoadLocations()
     {
         return TerritoryTypeSheet.ToDictionary(
-            territoryTypeSheetItem => (ushort)territoryTypeSheetItem.RowId,
+            territoryTypeSheetItem => territoryTypeSheetItem.RowId,
             territoryTypeSheetItem =>
             {
-                var location = new LocationData { TerritoryId = (ushort)territoryTypeSheetItem.RowId };
+                var location = new LocationData { TerritoryId = territoryTypeSheetItem.RowId };
                 location.TerritoryName = TerritoryTypeSheet.GetRowOrDefault(location.TerritoryId)?.PlaceName.Value.Name.ExtractText() ?? string.Empty;
                 var cfcFound = ContentFinderSheet.TryGetFirst(c => c.TerritoryType.RowId == location.TerritoryId, out var cfc);
                 if (cfcFound && cfc.RowId != 0)

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Dalamud.Game.ClientState.Objects.Enums;
 using Dalamud.Game.ClientState.Objects.SubKinds;
@@ -19,7 +19,7 @@ public static class ObjectTableExtension
     /// <returns>all players.</returns>
     public static IEnumerable<PlayerData> GetPlayers(this IObjectTable objectTable) =>
         objectTable.Skip(1)
-                   .Where(x => x.ObjectKind == ObjectKind.Player && x is IPlayerCharacter)
+                   .Where(x => x.ObjectKind == ObjectKind.Pc && x is IPlayerCharacter)
                    .OfType<IPlayerCharacter>()
                    .Select(pc => pc.ToPlayerData())
                    .Where(tp => tp.IsValid())
