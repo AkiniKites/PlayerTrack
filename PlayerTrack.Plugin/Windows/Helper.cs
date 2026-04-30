@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -449,25 +449,8 @@ public static class Helper
         return isChanged;
     }
 
-    public struct EndUnconditionally(Action endAction, bool success) : ImRaii.IEndObject
-    {
-        public bool Success { get; } = success;
-
-        private bool Disposed { get; set; } = false;
-        private Action EndAction { get; } = endAction;
-
-        public void Dispose()
-        {
-            if (!Disposed)
-            {
-                EndAction();
-                Disposed = true;
-            }
-        }
-    }
-
     // Use end-function only on success.
-    private struct EndConditionally(Action endAction, bool success) : ImRaii.IEndObject
+    public struct EndConditionally(Action endAction, bool success) : IDisposable
     {
         public bool Success { get; } = success;
 
@@ -486,7 +469,7 @@ public static class Helper
         }
     }
 
-    public static ImRaii.IEndObject Menu(string label)
+    public static EndConditionally Menu(string label)
     {
         return new EndConditionally(ImGui.EndMenu, ImGui.BeginMenu(label));
     }

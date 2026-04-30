@@ -74,4 +74,8 @@
 	    <DependentUpon>Language.resx</DependentUpon>
 	  </Compile>
 	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="DalamudPackager" Version="15.0.0" />
+	</ItemGroup>
 </Project>
